@@ -57,6 +57,22 @@ class DBHelper {
     });
   }
 
+  Future<List<Memo>> findMemo(String id) async {
+    final db = await database;
+
+    final List<Map<String, dynamic>> maps = await db.query('memos', where:"id = ?", whereArgs: [id], );
+
+    return List.generate(maps.length, (i) {
+      return Memo(
+        id: maps[i]['id'],
+        title: maps[i]['title'],
+        text: maps[i]['text'],
+        createTime: maps[i]['createTime'],
+        editTime: maps[i]['editTime'],
+      );
+    });
+  }
+
   Future<void> updateMemo(Memo memo) async {
     final db = await database;
 
@@ -71,7 +87,7 @@ class DBHelper {
     );
   }
 
-  Future<void> deleteMemo(int id) async {
+  Future<void> deleteMemo(String id) async {
     final db = await database;
 
     // 데이터베이스에서 Memo를 삭제합니다.
