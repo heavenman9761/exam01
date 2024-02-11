@@ -2,11 +2,12 @@ import 'dart:developer';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'edit.dart';
+import 'write.dart';
 import 'package:exam01/database/db.dart';
 import 'package:exam01/database/memo.dart';
 import 'package:logger/logger.dart';
 import 'package:exam01/screens/view.dart';
+import 'package:exam01/screens/write.dart';
 
 var logger = Logger(
   printer: PrettyPrinter(
@@ -45,23 +46,26 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Flutter Memo App'),
+      ),
       body: Column(
         children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.only(left: 20, top: 20, bottom: 20),
-            child: Container(
-              alignment: Alignment.centerLeft,
-              child: const Text('Memo',
-                  style: TextStyle(fontSize: 36, color: Colors.blue)),
-            ),
-          ),
+          // Padding(
+          //   padding: const EdgeInsets.only(left: 20, top: 20, bottom: 20),
+          //   child: Container(
+          //     alignment: Alignment.centerLeft,
+          //     child: const Text('Memo',
+          //         style: TextStyle(fontSize: 36, color: Colors.blue)),
+          //   ),
+          // ),
           Expanded(child: memoBuilder(context)),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.push(
-                  context, CupertinoPageRoute(builder: (context) => EditPage()))
+                  context, CupertinoPageRoute(builder: (context) => WritePage()))
               .then((value) => setState(() {}));
         },
         tooltip: '노트를 추가하려면 클릭하세요',
@@ -98,7 +102,6 @@ class _MyHomePageState extends State<MyHomePage> {
                   deleteMemo(deleteId);
                 });
                 deleteId = '';
-
               },
             ),
             TextButton(
@@ -116,6 +119,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget memoBuilder(BuildContext parentContext) {
     return FutureBuilder<List<Memo>>(
+      future: loadMemo(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.none) {
           return Container(
@@ -143,7 +147,10 @@ class _MyHomePageState extends State<MyHomePage> {
                 Memo memo = data[index];
                 return InkWell(
                     onTap: () {
-                      Navigator.push(parentContext, CupertinoPageRoute(builder: (context) => ViewPage(id: memo.id)));
+                      Navigator.push(
+                          parentContext,
+                          CupertinoPageRoute(
+                              builder: (context) => ViewPage(id: memo.id))).then((value) => setState(() {}));
                     },
                     child: Container(
                         margin: const EdgeInsets.all(5),
@@ -171,6 +178,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                     style: const TextStyle(
                                         fontSize: 20,
                                         fontWeight: FontWeight.w500),
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ],
                               ),
@@ -178,8 +186,11 @@ class _MyHomePageState extends State<MyHomePage> {
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
-                                  Text(memo.text,
-                                      style: const TextStyle(fontSize: 15)),
+                                  Text(
+                                    checkReturnChar(memo.text),
+                                    style: const TextStyle(fontSize: 15),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ],
                               ),
                               Column(
@@ -196,7 +207,6 @@ class _MyHomePageState extends State<MyHomePage> {
                     onLongPress: () {
                       deleteId = memo.id;
                       showAlertDialog(parentContext);
-
                     });
               });
         }
@@ -210,7 +220,11 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         );
       },
-      future: loadMemo(),
+
     );
+  }
+
+  String checkReturnChar(String text) {
+    return text.replaceAll('\n', ' ');
   }
 }
